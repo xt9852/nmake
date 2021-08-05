@@ -1,5 +1,5 @@
 //--------------------------
-// charset:UTF8
+// charset:ANSI
 //--------------------------
 #include <conio.h>
 #include <stdio.h>
