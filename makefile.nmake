@@ -1,37 +1,34 @@
 #------------------------------------------------------------
-# 字符集GB2312,编码方案也是GB2312
-# 字符集Unicode,编码方案它有多个:UTF-8,UTF-16(标准方案),UTF-32都是
-# 
+# 此配置由nmake.exe使用
+# MSVC_ARCH_TYPE    架构x64/x64
+# MSVC_PATH_ROOT    MSVC根目录
+# PATH_MSVC_LIB     MSVC库目录
+# PATH_KIT_LIB_UM   KIT的UM库目录
+# PATH_KIT_LIB_UCRT KIT的UCRT库目录
+# FILES_SRC         源文件列表,查询当前目录和子目录的.c,.cpp文件,命令为'dir /s/b *.c *.cpp'
+# FILES_OBJ         由源文件列表生转换而来
+# 以上变量由外部make.bat设置
+#
+# 字符集:GB2312, 编码方案也是:GB2312
+# 字符集:Unicode,编码方案多个:UTF-8,UTF-16(标准方案),UTF-32
+#
 # FILES_OBJ = $(FILES_SRC:.cpp=.obj) # 将.cpp替换成.obj
 # FILES_OBJ = $(FILES_OBJ:.c=.obj)   # 将.c  替换成.obj
 #------------------------------------------------------------
 
-NAME                = example           # 程序名称
-EXT                 = exe               # exe,dll,lib
-DEBUG               = debug             # debug,release
-CHARSET             = mbcs              # mbcs,unicode
-BIN                 = .                 # 生成文件目录
-TMP                 = .\tmp             # 临时文件目录
-SRC                 = .\src             # 源文件目录
-FILE_RC             = .\res\example.rc  # 资源描述文件
-
-# 资源文件
-FILE_RES            = $(TMP)\example.res
-
-# 文件列表
-FILES_SRC           = example.c\
-                      dll\example-dll1.c\
-                      dll\example-dll2.cpp
-
-# 对象列表
-FILES_OBJ           = $(FILE_RES)\
-                      $(TMP)\example.obj\
-                      $(TMP)\example-dll1.obj
-# 编译参数
-CFLAGS              =
-
-# 链接参数
-LFLAGS              = User32.lib Ws2_32.lib gdi32.lib # 排除默认库 /NODEFAULTLIB:"LIBCMT"
+NAME                = example               # 程序名称
+EXT                 = exe                   # exe,dll,lib
+DEBUG               = debug                 # debug,release
+CHARSET             = mbcs                  # mbcs,unicode
+BIN                 = .                     # 生成文件目录
+TMP                 = .\tmp                 # 临时文件目录
+FILE_RC             = .\res\example.rc      # 资源描述文件
+FILE_RES            = $(TMP)\example.res    # 资源文件
+CFLAGS              =                       # 编译参数,自定义宏/D"macro"
+                                            # 链接参数,排除默认库/NODEFAULTLIB:"LIBCMT"
+LFLAGS              = User32.lib \
+                      Ws2_32.lib \
+                      gdi32.lib
 
 #------------------------------------------------------------
 # 可执行命令
@@ -44,7 +41,6 @@ LNK                 = link.exe  # 连接器
 
 #------------------------------------------------------------
 # 设置路径
-# MSVC_ARCH_TYPE,PATH_MSVC_LIB,PATH_KIT_LIB_UM,PATH_KIT_LIB_UCRT由外部make.bat设置
 
 INCLUDE             = /I"$(PATH_MSVC_INCLUDE)" /I"$(PATH_KIT_INCLUDE_UM)" /I"$(PATH_KIT_INCLUDE_UCRT)" /I"$(PATH_KIT_INCLUDE_SHARED)"
 LIBPATH             = /LIBPATH:"$(PATH_MSVC_LIB)" /LIBPATH:"$(PATH_KIT_LIB_UM)" /LIBPATH:"$(PATH_KIT_LIB_UCRT)"
@@ -88,7 +84,7 @@ CFLAGS              = $(CFLAGS) /c /Gd /GS /W3 /WX /FC /sdl /EHsc /sdl \
                       /Gm- /nologo /permissive- \
                       /Zc:wchar_t /Zc:inline /Zc:forScope \
                       /fp:precise /diagnostics:column /errorReport:prompt \
-                      /Fo:"$(TMP)/" /Fd:"$(TMP)/" /D "_WINDOWS"
+                      /Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"_WINDOWS"
 
 # 构建类型:debug,release
 !IF "$(DEBUG)" == "debug"
@@ -113,21 +109,7 @@ CFLAGS              = $(CFLAGS) /D"_UNICODE" /D"UNICODE"
 
 #------------------------------------------------------------
 # 连接参数
-# /MANIFEST             生成清单
-# /NXCOMPAT             数据执行保护DEP
-# /ERRORREPORT:PROMPT   错误报告:立即提示
-# /NOLOGO               不显示版权信息
-# /TLBID:1
-#-----------------------debug-----
-# /DEBUG                生成调试信息
-# /INCREMENTAL          启用增量链接
-#-----------------------release-----
-# /INCREMENTAL:NO       不启用增量链接
-# /OPT:REF              引用
-# /LTCG:incremental     使用快速时间代码生成
-# /SAFESEH              映像具有安全异常处理程序
-
-LFLAGS              = $(LFLAGS) /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1 #/NOLOGO 
+LFLAGS              = $(LFLAGS) /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1 #/NOLOGO
 
 # 构建类型:debug,release
 !IF "$(DEBUG)" == "debug"
@@ -136,6 +118,7 @@ LFLAGS              = $(LFLAGS) $(LIBPATH) /DEBUG /INCREMENTAL
 LFLAGS              = $(LFLAGS) $(LIBPATH) /INCREMENTAL:NO /OPT:REF /LTCG:incremental /SAFESEH
 !ENDIF
 
+# 目标类型:exe,dll,lib
 !IF "$(EXT)" == "exe"
 OUT                 = "$(TMP)\$(NAME).exe"
 LFLAGS              = $(LFLAGS) /OUT:$(OUT)
@@ -148,20 +131,26 @@ LFLAGS              = /OUT:$(OUT)
 LNK                 = $(LIB)
 !ENDIF
 
+# 资源文件
+!IF "$(FILE_RC)" != "" && "$(FILE_RES)" != ""
+FILES_OBJ = $(FILES_OBJ) $(FILE_RES)
+!ENDIF
+
 #------------------------------------------------------------
-# 编译依赖
 
-all : TMP REC OBJ TARGET
+all : DIR REC OBJ GET MOV
 
-TMP :
-    if not exist "$(TMP)" mkdir $(TMP)
-    
+DIR :
+    @if not exist "$(TMP)" mkdir $(TMP)
+
 REC : $(FILE_RC)
-    $(RC) /nologo /fo"$(FILE_RES)" $**
+    @if "$(FILE_RC)" NEQ "" if "$(FILE_RES)" NEQ "" ($(RC) /nologo /fo"$(FILE_RES)" $(FILE_RC))
 
 OBJ : $(FILES_SRC)
     $(CC) $** $(CFLAGS)
 
-TARGET : $(FILES_OBJ)
+GET : $(FILES_OBJ)
     $(LNK) $** $(LFLAGS)
-    move $(OUT) $(BIN)
+
+MOV :
+    @move $(OUT) $(BIN)
