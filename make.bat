@@ -1,8 +1,8 @@
 ::-----------------------------------------------------
-:: µ÷ÓÃnmake.exeÊ¹ÓÃmakefile.nmakeÎªÅäÖÃ±àÒë¹¤³Ì
+:: è°ƒç”¨nmake.exeä½¿ç”¨makefile.nmakeä¸ºé…ç½®ç¼–è¯‘å·¥ç¨‹
 ::-----------------------------------------------------
-:: MSVC_ARCH_TYPE ¼Ü¹¹x64/x64
-:: MSVC_PATH_ROOT ±àÒë¹¤¾ßÂ·¾¶,°üº¬Kit,MSVCÁ½Ä¿Â¼,ÎÄ¼şÖ±½Ó´ÓVS2019ÖĞ¸´ÖÆ
+:: MSVC_ARCH_TYPE æ¶æ„x64/x64
+:: MSVC_PATH_ROOT ç¼–è¯‘å·¥å…·è·¯å¾„,åŒ…å«Kit,MSVCä¸¤ç›®å½•,æ–‡ä»¶ç›´æ¥ä»VS2019ä¸­å¤åˆ¶
 ::-----------------------------------------------------
 
 @set MSVC_ARCH_TYPE=x86
@@ -12,7 +12,7 @@
 @set TMP=..\tmp
 
 ::-----------------------------------------------------
-:: Ä¿Â¼½á¹¹
+:: ç›®å½•ç»“æ„
 
 :: nmake.exe
 @set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.29.30037\bin\Hostx64\%MSVC_ARCH_TYPE%
@@ -41,11 +41,11 @@
 :: libucrt.lib
 @set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE%
 
-:: ÉèÖÃPATH,Îªnmake
+:: è®¾ç½®PATH,ä¸ºnmake
 @set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KIT_BIN%
 
 ::-----------------------------------------------------
-::Ö´ĞĞ
+::æ‰§è¡Œ
 
 setlocal enabledelayedexpansion
 
