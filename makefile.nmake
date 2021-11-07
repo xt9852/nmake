@@ -31,15 +31,6 @@ LFLAGS              = User32.lib \
                       gdi32.lib
 
 #------------------------------------------------------------
-# 可执行命令
-
-CC                  = cl.exe    # c编译器
-ML                  = ml.exe    # 汇编编译器
-RC                  = rc.exe    # 资源编译器
-LIB                 = lib.exe   # 静态库生成器
-LNK                 = link.exe  # 连接器
-
-#------------------------------------------------------------
 # 设置路径
 
 INCLUDE             = /I"$(PATH_MSVC_INCLUDE)" /I"$(PATH_KIT_INCLUDE_UM)" /I"$(PATH_KIT_INCLUDE_UCRT)" /I"$(PATH_KIT_INCLUDE_SHARED)"
@@ -137,6 +128,16 @@ FILES_OBJ = $(FILES_OBJ) $(FILE_RES)
 !ENDIF
 
 #------------------------------------------------------------
+# 可执行命令
+
+CC                  = cl.exe    # c编译器
+ML                  = ml.exe    # 汇编编译器
+RC                  = rc.exe    # 资源编译器
+LIB                 = lib.exe   # 静态库生成器
+LNK                 = link.exe  # 连接器
+
+#------------------------------------------------------------
+# 编译文件
 
 all : DIR REC OBJ GET MOV
 
