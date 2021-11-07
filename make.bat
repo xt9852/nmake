@@ -8,11 +8,11 @@
 @set MSVC_ARCH_TYPE=x86
 @set MSVC_PATH_ROOT=D:\4.backup\coding\MSVC-2019
 
-@set SRC=..
-@set TMP=.\tmp
+@set SRC=..\src
+@set TMP=..\tmp
 
 ::-----------------------------------------------------
-:: MSVC目录结构
+:: 目录结构
 
 :: nmake.exe
 @set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.29.30037\bin\Hostx64\%MSVC_ARCH_TYPE%
@@ -22,9 +22,6 @@
 
 :: LIBCMT.lib
 @set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.29.30037\lib\%MSVC_ARCH_TYPE%
-
-::-----------------------------------------------------
-:: KIT目录结构
 
 :: rc.exe
 @set PATH_KIT_BIN=%MSVC_PATH_ROOT%\Kit\bin\10.0.19041.0\%MSVC_ARCH_TYPE%
@@ -44,27 +41,22 @@
 :: libucrt.lib
 @set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE%
 
-
-::-----------------------------------------------------
 :: 设置PATH,为nmake
-
 @set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KIT_BIN%
 
 ::-----------------------------------------------------
-:: 删除临时文件
+::执行
 
-@cd %SRC%
-@del /Q %TMP%\*
+setlocal enabledelayedexpansion
 
-::-----------------------------------------------------
-:: 得到源文件
+cd %~dp0
 
-:: 延迟变量
-@setlocal enabledelayedexpansion
-@for /f %%I in ('dir /s/b *.c *.cpp') do @(set "FILES_SRC=!FILES_SRC! %%I"&set "FILES_OBJ=!FILES_OBJ! %TMP_DIR%\%%~nI.obj")
+del /Q %TMP%\*
 
-::-----------------------------------------------------
-:: 编译程序
+pushd %SRC%
 
-@nmake /nologo /f .\makefile.nmake\makefile.nmake
-pause
+for /f %%I in ('dir /s/b *.c *.cpp') do @(set "FILES_SRC=!FILES_SRC! %%I"&set "FILES_OBJ=!FILES_OBJ! %TMP%\%%~nI.obj")
+
+popd
+
+nmake /nologo /f .\makefile.nmake

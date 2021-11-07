@@ -20,10 +20,10 @@ NAME                = example               # 程序名称
 EXT                 = exe                   # exe,dll,lib
 DEBUG               = debug                 # debug,release
 CHARSET             = mbcs                  # mbcs,unicode
-BIN                 = .                     # 生成文件目录
-FILE_RC             = .\res\example.rc      # 资源描述文件
+BIN                 = ..\tmp                # 生成文件目录
+FILE_RC             = ..\res\example.rc     # 资源描述文件
 FILE_RES            = $(TMP)\example.res    # 资源文件
-CFLAGS              =                       # 编译参数,自定义宏/D"macro"
+CFLAGS              = /I".."                # 编译参数,自定义宏/D"macro"
                                             # 链接参数,排除默认库/NODEFAULTLIB:"LIBCMT"
 LFLAGS              = User32.lib \
                       Ws2_32.lib \
