@@ -138,10 +138,7 @@ LNK                 = link.exe  # 连接器
 #------------------------------------------------------------
 # 编译文件
 
-all : DIR REC OBJ GET MOV
-
-DIR :
-    @if not exist "$(TMP)" mkdir $(TMP)
+all : REC OBJ GET MOV
 
 REC : $(FILE_RC)
     @if "$(FILE_RC)" NEQ "" if "$(FILE_RES)" NEQ "" ($(RC) /nologo /fo"$(FILE_RES)" $(FILE_RC))

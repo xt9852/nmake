@@ -1,57 +1,67 @@
 ::-----------------------------------------------------
-:: è°ƒç”¨nmake.exeä½¿ç”¨makefile.nmakeä¸ºé…ç½®ç¼–è¯‘å·¥ç¨‹
+:: µ÷ÓÃnmake.exeÊ¹ÓÃmakefile.nmakeÎªÅäÖÃ±àÒë¹¤³Ì
+:: ´ËÎÄ¼þ±àÂë     ANSI
+:: MSVC_ARCH_TYPE ¼Ü¹¹x64/x64
+:: MSVC_PATH_ROOT ±àÒë¹¤¾ßÂ·¾¶,°üº¬Kit,MSVCÁ½Ä¿Â¼,ÎÄ¼þÖ±½Ó´ÓVS2019ÖÐ¸´ÖÆ
+:: SRC            Ô´ÎÄ¼þÂ·¾¶
+:: TMP            ÁÙÊ±ÎÄ¼þÂ·¾¶
 ::-----------------------------------------------------
-:: MSVC_ARCH_TYPE æž¶æž„x64/x64
-:: MSVC_PATH_ROOT ç¼–è¯‘å·¥å…·è·¯å¾„,åŒ…å«Kit,MSVCä¸¤ç›®å½•,æ–‡ä»¶ç›´æŽ¥ä»ŽVS2019ä¸­å¤åˆ¶
+:: ²»ÏÔÊ¾ÃüÁî×Ö·û´®
+@echo off
+
+set MSVC_ARCH_TYPE=x86
+set MSVC_PATH_ROOT=D:\4.backup\coding\MSVC-2019
+
+set SRC=..\src
+set TMP=..\tmp
+
 ::-----------------------------------------------------
-
-@set MSVC_ARCH_TYPE=x86
-@set MSVC_PATH_ROOT=D:\4.backup\coding\MSVC-2019
-
-@set SRC=..\src
-@set TMP=..\tmp
-
-::-----------------------------------------------------
-:: ç›®å½•ç»“æž„
+:: ±àÒë¹¤¾ßÂ·¾¶
 
 :: nmake.exe
-@set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.29.30037\bin\Hostx64\%MSVC_ARCH_TYPE%
+set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.29.30037\bin\Hostx64\%MSVC_ARCH_TYPE%
 
 :: vcruntime.h
-@set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.29.30037\include
+set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.29.30037\include
 
 :: LIBCMT.lib
-@set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.29.30037\lib\%MSVC_ARCH_TYPE%
+set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.29.30037\lib\%MSVC_ARCH_TYPE%
 
 :: rc.exe
-@set PATH_KIT_BIN=%MSVC_PATH_ROOT%\Kit\bin\10.0.19041.0\%MSVC_ARCH_TYPE%
+set PATH_KIT_BIN=%MSVC_PATH_ROOT%\Kit\bin\10.0.19041.0\%MSVC_ARCH_TYPE%
 
 :: Winsock2.h->winapifamily.h
-@set PATH_KIT_INCLUDE_UM=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\um
+set PATH_KIT_INCLUDE_UM=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\um
 
 :: stdio.h->corecrt.h->vcruntime.h
-@set PATH_KIT_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\ucrt
+set PATH_KIT_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\ucrt
 
 :: winapifamily.h
-@set PATH_KIT_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\shared
+set PATH_KIT_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\shared
 
 :: uuid.lib
-@set PATH_KIT_LIB_UM=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\um\%MSVC_ARCH_TYPE%
+set PATH_KIT_LIB_UM=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\um\%MSVC_ARCH_TYPE%
 
 :: libucrt.lib
-@set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE%
-
-:: è®¾ç½®PATH,ä¸ºnmake
-@set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KIT_BIN%
+set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE%
 
 ::-----------------------------------------------------
-::æ‰§è¡Œ
-
-setlocal enabledelayedexpansion
+:: Ö´ÐÐÃüÁî
 
 cd %~dp0
 
-del /Q %TMP%\*
+setLocal EnableDelayedExpansion
+
+if "%PATH_SET%" neq "1" (
+    set PATH_SET=1
+    set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KIT_BIN%
+)
+
+if not exist "%TMP%" (
+    mkdir %TMP%
+) else (
+    del /q %TMP%\*
+)
 
 pushd %SRC%
 
