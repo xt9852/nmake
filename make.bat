@@ -118,7 +118,7 @@ if "%MSVC_ARCH_TYPE%" == "x64" (
 )
 
 :: ×Ö·û¼¯ÀàÐÍ:mbcs,unicode
-if "$(CHARSET)" == "mbcs" (
+if "%CHARSET%" == "mbcs" (
     set CFLAGS=%CFLAGS% /D"_MBCS"
 ) else (
     set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE"
