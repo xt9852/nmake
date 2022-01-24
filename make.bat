@@ -1,6 +1,12 @@
 ::-----------------------------------------------------
-:: 调用nmake.exe编译工程
-:: 此文件编码     ANSI
+:: Copyright:   2022, XT Tech. Co., Ltd.
+:: File name:   make.bat
+:: Description: 调用nmake.exe编译工程
+:: Author:      张海涛
+:: Version:     0.0.0.1
+:: Code:        ANSI
+:: Date:        2022-01-17
+:: History:     2022-01-17 创建此文件。
 ::-----------------------------------------------------
 
 :: 不显示命令字符串
@@ -10,7 +16,7 @@
 set MSVC_ARCH_TYPE=x86
 
 :: 编译工程根路径
-set MSVC_PATH_ROOT=D:\4.backup\coding\MSVC-2019
+set MSVC_PATH_ROOT=D:\4.backup\coding\VS2022
 
 ::-----------------------------------------------------
 
@@ -20,11 +26,11 @@ set NAME=example
 :: 程序类型:exe,dll,lib
 set EXT=exe
 
-:: 是否可调试:y,n
-set DEBUG=y
+:: 是否调试:y,n
+set DEBUG=n
 
-:: 字符集:mbcs,unicode
-set CHARSET=mbcs
+:: 字符集:mbcs,unicode,utf8
+set CHARSET=utf8
 
 :: 源文件路径
 set SRC=..\src
@@ -39,7 +45,7 @@ set TMP=..\tmp
 set FILE_RC=..\res\example.rc
 
 :: 编译参数
-set CFLAGS=/I".."
+set CFLAGS=/I".." /I"..\res"
 
 :: 链接参数
 set LFLAGS=User32.lib Ws2_32.lib gdi32.lib
@@ -52,15 +58,15 @@ set TOOL_ML=ml.exe
 set TOOL_RC=rc.exe
 set TOOL_LIB=lib.exe
 set TOOL_LNK=link.exe
-set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.29.30037\bin\Hostx64\%MSVC_ARCH_TYPE%
-set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.29.30037\include
-set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.29.30037\lib\%MSVC_ARCH_TYPE%
-set PATH_KIT_BIN=%MSVC_PATH_ROOT%\Kit\bin\10.0.19041.0\%MSVC_ARCH_TYPE%
-set PATH_KIT_INCLUDE_UM=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\um
-set PATH_KIT_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\ucrt
-set PATH_KIT_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Kit\Include\10.0.19041.0\shared
-set PATH_KIT_LIB_UM=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\um\%MSVC_ARCH_TYPE%
-set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE%
+set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.30.30705\bin\Hostx64\%MSVC_ARCH_TYPE%
+set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.30.30705\include
+set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.30.30705\lib\%MSVC_ARCH_TYPE%
+set PATH_KITS_BIN=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\bin\%MSVC_ARCH_TYPE%
+set PATH_KITS_INCLUDE_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\um
+set PATH_KITS_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\ucrt
+set PATH_KITS_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\shared
+set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%MSVC_ARCH_TYPE%
+set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%MSVC_ARCH_TYPE%
 
 ::-----------------------------------------------------
 :: 编译参数
@@ -84,6 +90,7 @@ set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE
 :: /Fo:"$(TMP)/"         输出路径
 :: /Fd:"$(TMP)/"         vc***.pdb路径
 :: /D "_WINDOWS"
+:: /utf-8                UTF8编译
 ::-----------------------debug-----
 :: /JMC                  支持仅我的代码调试
 :: /ZI                   启用“编辑并继续”调试信息
@@ -96,18 +103,18 @@ set PATH_KIT_LIB_UCRT=%MSVC_PATH_ROOT%\Kit\Lib\10.0.19041.0\ucrt\%MSVC_ARCH_TYPE
 :: /GL                   启用链接时代码生成
 :: /Gy                   分隔链接器函数
 
-:: 公共参数 
-set INCLUDE=/I"%PATH_MSVC_INCLUDE%" /I"%PATH_KIT_INCLUDE_UM%" /I"%PATH_KIT_INCLUDE_UCRT%" /I"%PATH_KIT_INCLUDE_SHARED%"
-set CFLAGS=%CFLAGS% /nologo /c /Gd /GS /W3 /WX /FC /sdl /EHsc /sdl /Gm- /permissive- ^
+:: 公共参数
+set INCLUDE=/I"%PATH_MSVC_INCLUDE%" /I"%PATH_KITS_INCLUDE_UM%" /I"%PATH_KITS_INCLUDE_UCRT%" /I"%PATH_KITS_INCLUDE_SHARED%"
+set CFLAGS=%INCLUDE% %CFLAGS% /nologo /c /Gd /GS /W3 /WX /FC /sdl /EHsc /sdl /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
 /Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"_WINDOWS"
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
-    set CFLAGS=%CFLAGS% %INCLUDE% /D"_DEBUG" /JMC /ZI /Od /RTC1
+    set CFLAGS=%CFLAGS% /D"_DEBUG" /JMC /ZI /Od /RTC1
 ) else (
-    set CFLAGS=%CFLAGS% %INCLUDE% /D"NDEBUG" /Zi /O2 /Oi /GL /Gy
+    set CFLAGS=%CFLAGS% /D"NDEBUG" /Zi /O2 /Oi /GL /Gy
 )
 
 :: 程序架构类型:x64,x86
@@ -117,23 +124,28 @@ if "%MSVC_ARCH_TYPE%" == "x64" (
     set CFLAGS=%CFLAGS% /D"_WIN32" /D"WIN32"
 )
 
-:: 字符集类型:mbcs,unicode
+:: 字符集类型:mbcs,unicode,utf8
 if "%CHARSET%" == "mbcs" (
     set CFLAGS=%CFLAGS% /D"_MBCS"
-) else (
+) else if "%CHARSET%" == "unicode" (
     set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE"
+) else (
+    set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE" /utf-8
 )
+
+:: 编译资源
+set RFLAGS=%INCLUDE% /nologo /fo"$(TMP)\$(NAME).res" "$(FILE_RC)"
 
 ::-----------------------------------------------------
 :: 连接参数
-set LIBPATH=/LIBPATH:"%PATH_MSVC_LIB%" /LIBPATH:"%PATH_KIT_LIB_UM%" /LIBPATH:"%PATH_KIT_LIB_UCRT%"
+set LIBPATH=/nologo /LIBPATH:"%PATH_MSVC_LIB%" /LIBPATH:"%PATH_KITS_LIB_UM%" /LIBPATH:"%PATH_KITS_LIB_UCRT%"
 set LFLAGS=%LFLAGS% /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
     set LFLAGS=%LFLAGS% %LIBPATH% /DEBUG /INCREMENTAL
 ) else (
-    set LFLAGS=%LFLAGS% %LIBPATH% /INCREMENTAL:NO /OPT:REF /LTCG:incremental /SAFESEH
+    set LFLAGS=%LFLAGS% %LIBPATH% /INCREMENTAL:NO /OPT:REF /LTCG:incremental
 )
 
 :: 目标类型:exe,dll,lib
@@ -182,13 +194,18 @@ popd
 :: 设置PATH
 if "%PATH_SET%" neq "1" (
     set PATH_SET=1
-    set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KIT_BIN%
+    set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 )
 
-:: 生成makefile
-echo all : REC OBJ BIN> "%TMP%\makefile.nmake"
+:: 生成makefile.nmake
+if "%FILE_RC%" == "" (
+    echo all : OBJ BIN> "%TMP%\makefile.nmake"
+) else (
+    echo all : REC OBJ BIN> "%TMP%\makefile.nmake"
+)
+
 echo REC : $(FILE_RC)>> "%TMP%\makefile.nmake"
-echo     @if "$(FILE_RC)" NEQ "" ($(TOOL_RC) /fo"$(TMP)\$(NAME).res" "$(FILE_RC)")>> "%TMP%\makefile.nmake"
+echo     $(TOOL_RC) %RFLAGS%>> "%TMP%\makefile.nmake"
 echo OBJ : $(FILES_SRC)>> "%TMP%\makefile.nmake"
 echo     $(TOOL_CC) $** $(CFLAGS)>> "%TMP%\makefile.nmake"
 echo BIN : $(FILES_OBJ)>> "%TMP%\makefile.nmake"
@@ -196,3 +213,8 @@ echo     $(TOOL_LNK) $** $(LFLAGS)>> "%TMP%\makefile.nmake"
 
 :: 编译程序
 nmake /nologo /f "%TMP%\makefile.nmake"
+
+:: 错误暂停
+::if "%errorlevel%" neq "0" (
+    pause
+)
