@@ -12,19 +12,14 @@
 :: 不显示命令字符串
 @echo off
 
-:: 程序架构
-set MSVC_ARCH_TYPE=x86
-
-:: 编译工程根路径
-set MSVC_PATH_ROOT=D:\4.backup\coding\VS2022
-
-::-----------------------------------------------------
-
 :: 程序名称
 set NAME=example
 
 :: 程序类型:exe,dll,lib
 set EXT=exe
+
+:: 程序架构:x86,x64
+set ARCH=x64
 
 :: 是否调试:y,n
 set DEBUG=n
@@ -33,7 +28,7 @@ set DEBUG=n
 set CHARSET=utf8
 
 :: 源文件路径
-set SRC=..\src
+set SRC=..\src\
 
 :: 目标文件路径
 set OUT=..\tmp
@@ -45,10 +40,10 @@ set TMP=..\tmp
 set FILE_RC=..\res\example.rc
 
 :: 编译参数
-set CFLAGS=/I".." /I"..\res"
+set CFLAGS=/I"..\res"
 
 :: 链接参数
-set LFLAGS=User32.lib Ws2_32.lib gdi32.lib
+set LFLAGS=gdi32.lib User32.lib
 
 ::-----------------------------------------------------
 :: 编译工具
@@ -58,16 +53,79 @@ set TOOL_ML=ml.exe
 set TOOL_RC=rc.exe
 set TOOL_LIB=lib.exe
 set TOOL_LNK=link.exe
-set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.30.30705\bin\Hostx64\%MSVC_ARCH_TYPE%
+set MSVC_PATH_ROOT=D:\4.backup\coding\VS2022
+set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.30.30705\bin\Hostx64\%ARCH%
 set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.30.30705\include
-set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.30.30705\lib\%MSVC_ARCH_TYPE%
-set PATH_KITS_BIN=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\bin\%MSVC_ARCH_TYPE%
+set PATH_MSVC_INCLUDE_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\include
+set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.30.30705\lib\%ARCH%
+set PATH_MSVC_LIB_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\lib\%ARCH%
+set PATH_KITS_BIN=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\bin\%ARCH%
 set PATH_KITS_INCLUDE_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\um
 set PATH_KITS_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\ucrt
 set PATH_KITS_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\shared
-set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%MSVC_ARCH_TYPE%
-set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%MSVC_ARCH_TYPE%
+set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%ARCH%
+set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH%
 
+::-----------------------------------------------------
+:: 编译MFC程序需要将下面的代码加下程序中
+:: #ifdef NMAKE
+::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\winmain.cpp
+::  int AFXAPI AfxWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+::  	_In_ LPTSTR lpCmdLine, int nCmdShow)
+::  {
+::  	ASSERT(hPrevInstance == NULL);
+::
+::  	int nReturnCode = -1;
+::  	CWinThread* pThread = AfxGetThread();
+::  	CWinApp* pApp = AfxGetApp();
+::
+::  	// AFX internal initialization
+::  	if (!AfxWinInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow))
+::  		goto InitFailure;
+::
+::  	// App global initializations (rare)
+::  	if (pApp != NULL && !pApp->InitApplication())
+::  		goto InitFailure;
+::
+::  	// Perform specific initializations
+::  	if (!pThread->InitInstance())
+::  	{
+::  		if (pThread->m_pMainWnd != NULL)
+::  		{
+::  			TRACE(traceAppMsg, 0, "Warning: Destroying non-NULL m_pMainWnd\n");
+::  			pThread->m_pMainWnd->DestroyWindow();
+::  		}
+::  		nReturnCode = pThread->ExitInstance();
+::  		goto InitFailure;
+::  	}
+::  	nReturnCode = pThread->Run();
+::
+::  InitFailure:
+::  #ifdef _DEBUG
+::  	// Check for missing AfxLockTempMap calls
+::  	if (AfxGetModuleThreadState()->m_nTempMapLock != 0)
+::  	{
+::  		TRACE(traceAppMsg, 0, "Warning: Temp map lock count non-zero (%ld).\n",
+::  			AfxGetModuleThreadState()->m_nTempMapLock);
+::  	}
+::  	AfxLockTempMaps();
+::  	AfxUnlockTempMaps(-1);
+::  #endif
+::
+::  	AfxWinTerm();
+::  	return nReturnCode;
+::  }
+::
+::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\appmodule.cpp
+::  extern "C" int WINAPI
+::  _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+::  	_In_ LPTSTR lpCmdLine, int nCmdShow)
+::  #pragma warning(suppress: 4985)
+::  {
+::  	// call shared/exported WinMain
+::  	return AfxWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+::  }
+:: #endif
 ::-----------------------------------------------------
 :: 编译参数
 :: /c                    只编译,不链接
@@ -103,12 +161,21 @@ set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%MSVC
 :: /GL                   启用链接时代码生成
 :: /Gy                   分隔链接器函数
 
-:: 公共参数
-set INCLUDE=/I"%PATH_MSVC_INCLUDE%" /I"%PATH_KITS_INCLUDE_UM%" /I"%PATH_KITS_INCLUDE_UCRT%" /I"%PATH_KITS_INCLUDE_SHARED%"
-set CFLAGS=%INCLUDE% %CFLAGS% /nologo /c /Gd /GS /W3 /WX /FC /sdl /EHsc /sdl /Gm- /permissive- ^
+:: 包含路径
+set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
+/I"%PATH_MSVC_INCLUDE_MFC%" ^
+/I"%PATH_KITS_INCLUDE_UM%" ^
+/I"%PATH_KITS_INCLUDE_UCRT%" ^
+/I"%PATH_KITS_INCLUDE_SHARED%"
+
+:: 编译参数
+set CFLAGS=%INCLUDE% %CFLAGS% ^
+/nologo /c ^
+/Gd /GS /W3 /WX- ^
+/FC /sdl /EHsc /sdl /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
-/Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"_WINDOWS"
+/Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"NMAKE"
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
@@ -118,7 +185,7 @@ if "%DEBUG%" == "y" (
 )
 
 :: 程序架构类型:x64,x86
-if "%MSVC_ARCH_TYPE%" == "x64" (
+if "%ARCH%" == "x64" (
     set CFLAGS=%CFLAGS% /D"_WIN64" /D"X64"
 ) else (
     set CFLAGS=%CFLAGS% /D"_WIN32" /D"WIN32"
@@ -138,14 +205,29 @@ set RFLAGS=%INCLUDE% /nologo /fo"$(TMP)\$(NAME).res" "$(FILE_RC)"
 
 ::-----------------------------------------------------
 :: 连接参数
-set LIBPATH=/nologo /LIBPATH:"%PATH_MSVC_LIB%" /LIBPATH:"%PATH_KITS_LIB_UM%" /LIBPATH:"%PATH_KITS_LIB_UCRT%"
-set LFLAGS=%LFLAGS% /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1
+:: /LIBPATH:        lib文件包在路径
+:: /MANIFEST        生成清单
+:: /NXCOMPAT        数据执行保护
+:: /TLBID:1         资源ID
+:: /INCREMENTAL:NO  增量连接
+:: /OPT:REF         引用
+:: /LTCG:incremental使用快速连接生成代码
+
+
+:: 包含路径
+set LIBPATH=/LIBPATH:"%PATH_MSVC_LIB%" ^
+/LIBPATH:"%PATH_MSVC_LIB_MFC%" ^
+/LIBPATH:"%PATH_KITS_LIB_UM%" ^
+/LIBPATH:"%PATH_KITS_LIB_UCRT%"
+
+:: 连接参数
+set LFLAGS=%LFLAGS% %LIBPATH% /nologo /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
-    set LFLAGS=%LFLAGS% %LIBPATH% /DEBUG /INCREMENTAL
+    set LFLAGS=%LFLAGS% /DEBUG /INCREMENTAL
 ) else (
-    set LFLAGS=%LFLAGS% %LIBPATH% /INCREMENTAL:NO /OPT:REF /LTCG:incremental
+    set LFLAGS=%LFLAGS% /INCREMENTAL:NO /OPT:REF /LTCG:incremental
 )
 
 :: 目标类型:exe,dll,lib
@@ -191,25 +273,31 @@ if "%FILE_RC%" neq "" (
 :: 回到原目录
 popd
 
-:: 设置PATH
+:: 设置系统变量
 if "%PATH_SET%" neq "1" (
     set PATH_SET=1
     set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 )
 
-:: 生成makefile.nmake
-if "%FILE_RC%" == "" (
-    echo all : OBJ BIN> "%TMP%\makefile.nmake"
-) else (
-    echo all : REC OBJ BIN> "%TMP%\makefile.nmake"
+:: 资源
+if "%FILE_RC%" neq "" (
+    set REC=REC
 )
 
-echo REC : $(FILE_RC)>> "%TMP%\makefile.nmake"
-echo     $(TOOL_RC) %RFLAGS%>> "%TMP%\makefile.nmake"
-echo OBJ : $(FILES_SRC)>> "%TMP%\makefile.nmake"
-echo     $(TOOL_CC) $** $(CFLAGS)>> "%TMP%\makefile.nmake"
-echo BIN : $(FILES_OBJ)>> "%TMP%\makefile.nmake"
-echo     $(TOOL_LNK) $** $(LFLAGS)>> "%TMP%\makefile.nmake"
+:: 生成makefile.nmake
+echo all : %REC% OBJ BIN^
+
+REC : $(FILE_RC)^
+
+    $(TOOL_RC) %RFLAGS%^
+
+OBJ : $(FILES_SRC)^
+
+    $(TOOL_CC) $** $(CFLAGS)^
+
+BIN : $(FILES_OBJ)^
+
+    $(TOOL_LNK) $** $(LFLAGS) >> "%TMP%\makefile.nmake"
 
 :: 编译程序
 nmake /nologo /f "%TMP%\makefile.nmake"
