@@ -19,10 +19,10 @@ set NAME=example
 set EXT=exe
 
 :: 程序架构:x86,x64
-set ARCH=x64
+set ARCH=x86
 
 :: 是否调试:y,n
-set DEBUG=n
+set DEBUG=y
 
 :: 字符集:mbcs,unicode,utf8
 set CHARSET=utf8
@@ -43,7 +43,7 @@ set FILE_RC=..\res\example.rc
 set CFLAGS=/I"..\res"
 
 :: 链接参数
-set LFLAGS=gdi32.lib User32.lib
+set LFLAGS=gdi32.lib User32.lib Advapi32.lib
 
 ::-----------------------------------------------------
 :: 编译工具
@@ -250,7 +250,11 @@ if "%EXT%" == "exe" (
 cd "%~dp0"
 
 :: 检查临目录
-if not exist "%TMP%" (mkdir "%TMP%") else (del /q "%TMP%\*")
+if not exist "%TMP%" (
+    mkdir "%TMP%"
+) else (
+    del /q "%TMP%\*"
+)
 
 ::  设置延迟变量,要在 pushd "%SRC%" 之前
 setLocal EnableDelayedExpansion
@@ -263,7 +267,10 @@ set FILES_SRC=
 set FILES_OBJ=
 
 :: 查找源文件
-for /f %%I in ('dir /s/b *.c *.cpp') do (set "FILES_SRC=!FILES_SRC! %%I"&set "FILES_OBJ=!FILES_OBJ! %TMP%\%%~nI.obj")
+for /f %%I in ('dir /s/b *.c *.cpp') do (
+    set "FILES_SRC=!FILES_SRC! %%I"
+    set "FILES_OBJ=!FILES_OBJ! %TMP%\%%~nI.obj"
+)
 
 :: 资源文件
 if "%FILE_RC%" neq "" (
@@ -274,10 +281,7 @@ if "%FILE_RC%" neq "" (
 popd
 
 :: 设置系统变量
-if "%PATH_SET%" neq "1" (
-    set PATH_SET=1
-    set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
-)
+set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 
 :: 资源
 if "%FILE_RC%" neq "" (
