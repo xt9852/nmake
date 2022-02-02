@@ -71,71 +71,71 @@ set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH
 :: #ifdef NMAKE
 ::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\winmain.cpp
 ::  int AFXAPI AfxWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-::  	_In_ LPTSTR lpCmdLine, int nCmdShow)
+::      _In_ LPTSTR lpCmdLine, int nCmdShow)
 ::  {
-::  	ASSERT(hPrevInstance == NULL);
+::      ASSERT(hPrevInstance == NULL);
 ::
-::  	int nReturnCode = -1;
-::  	CWinThread* pThread = AfxGetThread();
-::  	CWinApp* pApp = AfxGetApp();
+::      int nReturnCode = -1;
+::      CWinThread* pThread = AfxGetThread();
+::      CWinApp* pApp = AfxGetApp();
 ::
-::  	// AFX internal initialization
-::  	if (!AfxWinInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow))
-::  		goto InitFailure;
+::      // AFX internal initialization
+::      if (!AfxWinInit(hInstance, hPrevInstance, lpCmdLine, nCmdShow))
+::          goto InitFailure;
 ::
-::  	// App global initializations (rare)
-::  	if (pApp != NULL && !pApp->InitApplication())
-::  		goto InitFailure;
+::      // App global initializations (rare)
+::      if (pApp != NULL && !pApp->InitApplication())
+::          goto InitFailure;
 ::
-::  	// Perform specific initializations
-::  	if (!pThread->InitInstance())
-::  	{
-::  		if (pThread->m_pMainWnd != NULL)
-::  		{
-::  			TRACE(traceAppMsg, 0, "Warning: Destroying non-NULL m_pMainWnd\n");
-::  			pThread->m_pMainWnd->DestroyWindow();
-::  		}
-::  		nReturnCode = pThread->ExitInstance();
-::  		goto InitFailure;
-::  	}
-::  	nReturnCode = pThread->Run();
+::      // Perform specific initializations
+::      if (!pThread->InitInstance())
+::      {
+::          if (pThread->m_pMainWnd != NULL)
+::          {
+::              TRACE(traceAppMsg, 0, "Warning: Destroying non-NULL m_pMainWnd\n");
+::              pThread->m_pMainWnd->DestroyWindow();
+::          }
+::          nReturnCode = pThread->ExitInstance();
+::          goto InitFailure;
+::      }
+::      nReturnCode = pThread->Run();
 ::
 ::  InitFailure:
 ::  #ifdef _DEBUG
-::  	// Check for missing AfxLockTempMap calls
-::  	if (AfxGetModuleThreadState()->m_nTempMapLock != 0)
-::  	{
-::  		TRACE(traceAppMsg, 0, "Warning: Temp map lock count non-zero (%ld).\n",
-::  			AfxGetModuleThreadState()->m_nTempMapLock);
-::  	}
-::  	AfxLockTempMaps();
-::  	AfxUnlockTempMaps(-1);
+::      // Check for missing AfxLockTempMap calls
+::      if (AfxGetModuleThreadState()->m_nTempMapLock != 0)
+::      {
+::          TRACE(traceAppMsg, 0, "Warning: Temp map lock count non-zero (%ld).\n",
+::              AfxGetModuleThreadState()->m_nTempMapLock);
+::      }
+::      AfxLockTempMaps();
+::      AfxUnlockTempMaps(-1);
 ::  #endif
 ::
-::  	AfxWinTerm();
-::  	return nReturnCode;
+::      AfxWinTerm();
+::      return nReturnCode;
 ::  }
 ::
 ::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\appmodule.cpp
 ::  extern "C" int WINAPI
 ::  _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
-::  	_In_ LPTSTR lpCmdLine, int nCmdShow)
+::      _In_ LPTSTR lpCmdLine, int nCmdShow)
 ::  #pragma warning(suppress: 4985)
 ::  {
-::  	// call shared/exported WinMain
-::  	return AfxWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+::      // call shared/exported WinMain
+::      return AfxWinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 ::  }
 :: #endif
 ::-----------------------------------------------------
 :: 编译参数
 :: /c                    只编译,不链接
 :: /Gd                   调用约定:_cdecl
-:: /GS                   启用安全检查
 :: /W3                   警告等级3
-:: /WX-                  将警告视为错误
+:: /WX                   将警告视为错误
 :: /FC                   使用完整路径
-:: /EHsc                 启用C++异常
+:: /GS                   启用安全检查
 :: /sdl                  启用SDL检查
+:: /EHsc                 启用C++异常
 :: /Gm-                  停用最小重新生成
 :: /nologo               不显示版权信息
 :: /permissive-          符合模式
@@ -170,9 +170,8 @@ set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 
 :: 编译参数
 set CFLAGS=%INCLUDE% %CFLAGS% ^
-/nologo /c ^
-/Gd /GS /W3 /WX- ^
-/FC /sdl /EHsc /sdl /Gm- /permissive- ^
+/nologo /c /Gd /FC /W3 /WX- ^
+/GS /sdl- /EHsc /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
 /Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"NMAKE"
@@ -212,7 +211,6 @@ set RFLAGS=%INCLUDE% /nologo /fo"$(TMP)\$(NAME).res" "$(FILE_RC)"
 :: /INCREMENTAL:NO  增量连接
 :: /OPT:REF         引用
 :: /LTCG:incremental使用快速连接生成代码
-
 
 :: 包含路径
 set LIBPATH=/LIBPATH:"%PATH_MSVC_LIB%" ^
@@ -307,6 +305,6 @@ BIN : $(FILES_OBJ)^
 nmake /nologo /f "%TMP%\makefile.nmake"
 
 :: 错误暂停
-::if "%errorlevel%" neq "0" (
+if "%errorlevel%" neq "0" (
     pause
 )
