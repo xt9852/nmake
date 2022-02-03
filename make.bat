@@ -170,7 +170,7 @@ set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 
 :: ±‡“Î≤Œ ˝
 set CFLAGS=%INCLUDE% %CFLAGS% ^
-/nologo /c /Gd /FC /W3 /WX- ^
+/nologo /c /Gd /FC /W3 /WX ^
 /GS /sdl- /EHsc /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
