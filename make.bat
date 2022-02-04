@@ -43,7 +43,7 @@ set FILE_RC=..\res\example.rc
 set CFLAGS=/I"..\res"
 
 :: 链接参数
-set LFLAGS=gdi32.lib User32.lib Advapi32.lib
+set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
 
 ::-----------------------------------------------------
 :: 编译工具
