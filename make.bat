@@ -22,7 +22,7 @@ set EXT=exe
 set ARCH=x86
 
 :: 是否调试:y,n
-set DEBUG=y
+set DEBUG=n
 
 :: 字符集:mbcs,unicode,utf8
 set CHARSET=utf8
@@ -171,7 +171,7 @@ set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 :: 编译参数
 set CFLAGS=%INCLUDE% %CFLAGS% ^
 /nologo /c /Gd /FC /W3 /WX ^
-/GS /sdl- /EHsc /Gm- /permissive- ^
+/GS- /sdl- /EHsc- /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
 /Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"NMAKE"
