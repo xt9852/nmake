@@ -37,7 +37,7 @@ set OUT=..\tmp
 set TMP=..\tmp
 
 :: 资源描述文件
-set FILE_RC=..\res\example.rc
+set FILE_RC=..\res\main.rc
 
 :: 编译参数
 set CFLAGS=/I"..\res"
