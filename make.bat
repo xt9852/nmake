@@ -28,22 +28,33 @@ set DEBUG=n
 set CHARSET=utf8
 
 :: 源文件路径
-set SRC=..\src\
+set SRC=.\
 
 :: 目标文件路径
-set OUT=..\tmp
+set OUT=.\
 
 :: 临时文件路径
-set TMP=..\tmp
+set TMP=.\tmp
 
 :: 资源描述文件
-set FILE_RC=..\res\main.rc
+set FILE_RC=
 
 :: 编译参数
-set CFLAGS=/I"..\res"
+set CFLAGS=
 
 :: 链接参数
 set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
+
+::-----------------------------------------------------
+:: 读取配置文件
+
+set INI=%1\make.ini
+
+if exist "%INI%" (
+    for /f "tokens=1,2 delims==" %%a in (%INI%) do (
+        set %%a=%%b
+    )
+)
 
 ::-----------------------------------------------------
 :: 编译工具
@@ -230,11 +241,17 @@ if "%DEBUG%" == "y" (
 
 :: 目标类型:exe,dll,lib
 if "%EXT%" == "exe" (
-    set LFLAGS=%LFLAGS% /OUT:%OUT%\%NAME%.exe
+    set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.exe
+    set MOV_SRC=%TMP%\%NAME%.exe
+    set MOV_DST=%OUT%\%NAME%.exe
 ) else if "%EXT%" == "dll" (
-    set LFLAGS=%LFLAGS% /OUT:%OUT%\%NAME%.dll /DLL
+    set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.dll /DLL
+    set MOV_SRC=%TMP%\%NAME%.dll
+    set MOV_DST=%OUT%\%NAME%.dll
 ) else if "%EXT%" == "lib" (
-    set LFLAGS=/OUT:%OUT%\%NAME%.lib
+    set LFLAGS=/OUT:%TMP%\%NAME%.lib
+    set MOV_SRC=%TMP%\%NAME%.lib
+    set MOV_DST=%OUT%\%NAME%.lib
     set TOOL_LNK=%TOOL_LIB%
 ) else (
     echo EXT=%EXT% error
@@ -244,8 +261,12 @@ if "%EXT%" == "exe" (
 
 ::-----------------------------------------------------
 
-:: 进入此脚本文件所在目录
-cd "%~dp0"
+:: 进入参数1目录或此脚本文件所在目录
+if "%1" neq "" (
+    cd %1
+) else (
+    cd "%~dp0"
+)
 
 :: 检查临目录
 if not exist "%TMP%" (
@@ -287,7 +308,7 @@ if "%FILE_RC%" neq "" (
 )
 
 :: 生成makefile.nmake
-echo all : %REC% OBJ BIN^
+echo all : %REC% OBJ BIN MOV^
 
 REC : $(FILE_RC)^
 
@@ -299,7 +320,15 @@ OBJ : $(FILES_SRC)^
 
 BIN : $(FILES_OBJ)^
 
-    $(TOOL_LNK) $** $(LFLAGS) >> "%TMP%\makefile.nmake"
+    $(TOOL_LNK) $** $(LFLAGS)^
+
+MOV : ^
+
+    if "%TMP%" neq "%OUT%" (^
+
+        move "%MOV_SRC%" "%MOV_DST%"^
+
+    )>> "%TMP%\makefile.nmake"
 
 :: 编译程序
 nmake /nologo /f "%TMP%\makefile.nmake"
