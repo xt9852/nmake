@@ -1,6 +1,6 @@
 ::-----------------------------------------------------
 :: Copyright:   2022, XT Tech. Co., Ltd.
-:: File name:   make-start.bat
+:: File name:   run.bat
 :: Description: 调用nmake.bat编译工程
 :: Author:      张海涛
 :: Version:     0.0.0.1
@@ -35,11 +35,11 @@ if exist "%INI%" (
 ::-----------------------------------------------------
 :: 目标类型:exe,dll,lib
 if "%EXT%" neq "exe" (
-    echo "dll,lib isnot exe"
+    echo "dll,lib is not exe"
     pause
     exit
 )
 
 cd %1
-start %OUT%\%NAME%.exe
 
+start %OUT%\%NAME%.exe
