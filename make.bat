@@ -1,12 +1,11 @@
 ::-----------------------------------------------------
 :: Copyright:   2022, XT Tech. Co., Ltd.
-:: File name:   make.bat
-:: Description: 调用nmake.exe编译工程
+:: File:        make.bat
 :: Author:      张海涛
 :: Version:     0.0.0.1
-:: Code:        ANSI
+:: Encode:      ANSI
 :: Date:        2022-01-17
-:: History:     2022-01-17 创建此文件。
+:: Description: 调用nmake.exe编译工程
 ::-----------------------------------------------------
 
 :: 不显示命令字符串
@@ -32,6 +31,9 @@ set SRC=.
 
 :: 资源描述文件
 set RES=
+
+:: 排除的文件
+set EXCLUDE=
 
 :: 目标文件路径
 set OUT=
@@ -111,7 +113,7 @@ set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%ARCH%
 set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH%
 
 ::-----------------------------------------------------
-:: 编译MFC程序需要将下面的代码加下程序中
+:: 编译MFC程序需要将下面的代码加入代码中
 :: #ifdef NMAKE
 ::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\winmain.cpp
 ::  int AFXAPI AfxWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -205,9 +207,6 @@ set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH
 :: /GL                   启用链接时代码生成
 :: /Gy                   分隔链接器函数
 
-:: 设置系统路径
-set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
-
 :: 包含路径
 set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 /I"%PATH_MSVC_INCLUDE_MFC%" ^
@@ -215,7 +214,7 @@ set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 /I"%PATH_KITS_INCLUDE_UCRT%" ^
 /I"%PATH_KITS_INCLUDE_SHARED%"
 
-:: 编译参数
+:: 编译代码参数
 set CFLAGS=%INCLUDE% %CFLAGS% ^
 /nologo /c /Gd /FC /W3 /WX ^
 /GS- /sdl- /EHsc- /Gm- /permissive- ^
@@ -246,11 +245,12 @@ if "%CHARSET%" == "mbcs" (
     set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE" /utf-8
 )
 
-:: 编译资源
+::-----------------------------------------------------
+:: 编译资源参数
 set RFLAGS=%INCLUDE% /nologo /fo"$(ROOT)\$(TMP)\$(NAME).res" "$(ROOT)\$(RES)"
 
 ::-----------------------------------------------------
-:: 连接参数
+:: 连接参数说明
 :: /LIBPATH:        lib文件包在路径
 :: /MANIFEST        生成清单
 :: /NXCOMPAT        数据执行保护
@@ -289,11 +289,11 @@ if "%EXT%" == "exe" (
     exit
 )
 
+::-----------------------------------------------------
+
 :: 移动文件
 set MOV_SRC=%TMP%\%NAME%.%EXT%
 set MOV_DST=%OUT%\%NAME%.%EXT%
-
-::-----------------------------------------------------
 
 :: 检查临目录
 if not exist "%ROOT%\%TMP%" (
@@ -305,10 +305,11 @@ if not exist "%ROOT%\%TMP%" (
 :: 保存当前目录
 set CD=%~dp0
 
-:: 清空
+:: 源代码文件
 set FILES_SRC=
 set FILES_OBJ=
 
+:: 多个源目录
 for %%I in (%SRC%) do (
     if exist "%ROOT%\%%I" (
         cd "%ROOT%\%%I"
@@ -319,7 +320,12 @@ for %%I in (%SRC%) do (
     :: 查找源文件
     for /f %%J in ('dir /s/b *.c *.cpp') do (
         set "FILES_SRC=!FILES_SRC! %%J"
-        set "FILES_OBJ=!FILES_OBJ! %ROOT%\%TMP%\%%~nJ.obj"
+
+        echo %EXCLUDE% | findstr %%~nJ > nul && (
+            echo "exclude %%J"
+        ) || (
+            set "FILES_OBJ=!FILES_OBJ! %ROOT%\%TMP%\%%~nJ.obj"
+        )
     )
 )
 
@@ -330,7 +336,7 @@ if "%RES%" neq "" (
 )
 
 if "%OUT%" neq "" (
-    set MOV=MOV 
+    set MOV=MOV
 )
 
 :: 生成makefile.nmake
@@ -353,6 +359,9 @@ MOV :^
     move "%MOV_SRC%" "%MOV_DST%" >> "%ROOT%\%TMP%\makefile.nmake"
 
 cd %ROOT%
+
+:: 设置系统路径
+set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 
 :: 编译程序
 nmake /nologo /f "%TMP%\makefile.nmake"
