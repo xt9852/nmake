@@ -28,16 +28,16 @@ set DEBUG=n
 set CHARSET=utf8
 
 :: 源文件路径
-set SRC=.\
-
-:: 目标文件路径
-set OUT=.\
-
-:: 临时文件路径
-set TMP=.\tmp
+set SRC=.
 
 :: 资源描述文件
-set FILE_RC=
+set RES=
+
+:: 目标文件路径
+set OUT=
+
+:: 临时文件路径
+set TMP=tmp
 
 :: 编译参数
 set CFLAGS=
@@ -46,16 +46,49 @@ set CFLAGS=
 set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
 
 ::-----------------------------------------------------
-:: 读取配置文件
+:: 读取配置文件make.ini
 
-set INI=%1\make.ini
+set DIR=%1
 
-if exist "%INI%" (
-    for /f "tokens=1,2 delims==" %%a in (%INI%) do (
-        set %%a=%%b
+if "%DIR%" == "" (
+    echo "don't set make.ini path"
+    pause
+    exit
+)
+
+::将\替换成空格
+set DIR=%DIR:\= %
+
+set INI=
+
+SET ROOT=
+
+set DELIMS=
+
+setLocal EnableDelayedExpansion
+
+::查找make.ini文件
+for %%i in (%DIR%) do (
+    set "INI=!INI!!DELIMS!%%i"
+    set "DELIMS=\"
+    if exist "!INI!\make.ini" (
+        set "ROOT=!INI!"
+        set "INI=!INI!\make.ini"
+        goto break
     )
 )
 
+:break
+
+if not exist "%INI%" (
+    echo "don't have %INI%"
+    pause
+    exit
+)
+
+for /f "tokens=1,2 delims==" %%a in (%INI%) do (
+    set %%a=%%b
+)
 ::-----------------------------------------------------
 :: 编译工具
 
@@ -172,6 +205,9 @@ set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH
 :: /GL                   启用链接时代码生成
 :: /Gy                   分隔链接器函数
 
+:: 设置系统路径
+set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
+
 :: 包含路径
 set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
 /I"%PATH_MSVC_INCLUDE_MFC%" ^
@@ -185,7 +221,7 @@ set CFLAGS=%INCLUDE% %CFLAGS% ^
 /GS- /sdl- /EHsc- /Gm- /permissive- ^
 /Zc:wchar_t /Zc:inline /Zc:forScope ^
 /fp:precise /diagnostics:column /errorReport:prompt ^
-/Fo:"$(TMP)/" /Fd:"$(TMP)/" /D"NMAKE"
+/Fo:"$(ROOT)\$(TMP)/" /Fd:"$(ROOT)\$(TMP)/" /D"NMAKE"
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
@@ -196,9 +232,9 @@ if "%DEBUG%" == "y" (
 
 :: 程序架构类型:x64,x86
 if "%ARCH%" == "x64" (
-    set CFLAGS=%CFLAGS% /D"_WIN64" /D"X64"
+    set CFLAGS=%CFLAGS% /D"_WINDOWS" /D"_WIN64" /D"X64"
 ) else (
-    set CFLAGS=%CFLAGS% /D"_WIN32" /D"WIN32"
+    set CFLAGS=%CFLAGS% /D"_WINDOWS" /D"_WIN32" /D"WIN32"
 )
 
 :: 字符集类型:mbcs,unicode,utf8
@@ -211,7 +247,7 @@ if "%CHARSET%" == "mbcs" (
 )
 
 :: 编译资源
-set RFLAGS=%INCLUDE% /nologo /fo"$(TMP)\$(NAME).res" "$(FILE_RC)"
+set RFLAGS=%INCLUDE% /nologo /fo"$(ROOT)\$(TMP)\$(NAME).res" "$(ROOT)\$(RES)"
 
 ::-----------------------------------------------------
 :: 连接参数
@@ -242,16 +278,10 @@ if "%DEBUG%" == "y" (
 :: 目标类型:exe,dll,lib
 if "%EXT%" == "exe" (
     set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.exe
-    set MOV_SRC=%TMP%\%NAME%.exe
-    set MOV_DST=%OUT%\%NAME%.exe
 ) else if "%EXT%" == "dll" (
     set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.dll /DLL
-    set MOV_SRC=%TMP%\%NAME%.dll
-    set MOV_DST=%OUT%\%NAME%.dll
 ) else if "%EXT%" == "lib" (
-    set LFLAGS=/OUT:%TMP%\%NAME%.lib
-    set MOV_SRC=%TMP%\%NAME%.lib
-    set MOV_DST=%OUT%\%NAME%.lib
+    set LFLAGS=/OUT:%OUT%\%NAME%.lib
     set TOOL_LNK=%TOOL_LIB%
 ) else (
     echo EXT=%EXT% error
@@ -259,58 +289,54 @@ if "%EXT%" == "exe" (
     exit
 )
 
+:: 移动文件
+set MOV_SRC=%TMP%\%NAME%.%EXT%
+set MOV_DST=%OUT%\%NAME%.%EXT%
+
 ::-----------------------------------------------------
 
-:: 进入参数1目录或此脚本文件所在目录
-if "%1" neq "" (
-    cd %1
-) else (
-    cd "%~dp0"
-)
-
 :: 检查临目录
-if not exist "%TMP%" (
-    mkdir "%TMP%"
+if not exist "%ROOT%\%TMP%" (
+    mkdir "%ROOT%\%TMP%"
 ) else (
-    del /q "%TMP%\*"
+    del /q "%ROOT%\%TMP%\*"
 )
 
-::  设置延迟变量,要在 pushd "%SRC%" 之前
-setLocal EnableDelayedExpansion
-
-:: 进入源文件目录
-pushd "%SRC%"
+:: 保存当前目录
+set CD=%~dp0
 
 :: 清空
 set FILES_SRC=
 set FILES_OBJ=
 
-:: 查找源文件
-for /f %%I in ('dir /s/b *.c *.cpp') do (
-    set "FILES_SRC=!FILES_SRC! %%I"
-    set "FILES_OBJ=!FILES_OBJ! %TMP%\%%~nI.obj"
+for %%I in (%SRC%) do (
+    if exist "%ROOT%\%%I" (
+        cd "%ROOT%\%%I"
+    ) else (
+        cd "%%I"
+    )
+
+    :: 查找源文件
+    for /f %%J in ('dir /s/b *.c *.cpp') do (
+        set "FILES_SRC=!FILES_SRC! %%J"
+        set "FILES_OBJ=!FILES_OBJ! %ROOT%\%TMP%\%%~nJ.obj"
+    )
 )
 
 :: 资源文件
-if "%FILE_RC%" neq "" (
-    set FILES_OBJ=%FILES_OBJ% %TMP%\%NAME%.res
-)
-
-:: 回到原目录
-popd
-
-:: 设置系统变量
-set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
-
-:: 资源
-if "%FILE_RC%" neq "" (
+if "%RES%" neq "" (
+    set FILES_OBJ=%FILES_OBJ% %ROOT%\%TMP%\%NAME%.res
     set REC=REC
 )
 
-:: 生成makefile.nmake
-echo all : %REC% OBJ BIN MOV^
+if "%OUT%" neq "" (
+    set MOV=MOV 
+)
 
-REC : $(FILE_RC)^
+:: 生成makefile.nmake
+echo all : %REC% OBJ BIN %MOV%^
+
+REC : %ROOT%\$(RES)^
 
     $(TOOL_RC) %RFLAGS%^
 
@@ -322,18 +348,18 @@ BIN : $(FILES_OBJ)^
 
     $(TOOL_LNK) $** $(LFLAGS)^
 
-MOV : ^
+MOV :^
 
-    if "%TMP%" neq "%OUT%" (^
+    move "%MOV_SRC%" "%MOV_DST%" >> "%ROOT%\%TMP%\makefile.nmake"
 
-        move "%MOV_SRC%" "%MOV_DST%"^
-
-    )>> "%TMP%\makefile.nmake"
+cd %ROOT%
 
 :: 编译程序
 nmake /nologo /f "%TMP%\makefile.nmake"
 
+cd %CD%
+
 :: 错误暂停
-if "%errorlevel%" neq "0" (
+::if "%errorlevel%" neq "0" (
     pause
 )
