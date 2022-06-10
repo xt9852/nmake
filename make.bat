@@ -1,8 +1,8 @@
 ::-----------------------------------------------------
-:: Copyright:   2022, XT Tech. Co., Ltd.
+:: Copyright:   XT Tech. Co., Ltd.
 :: File:        make.bat
 :: Author:      张海涛
-:: Version:     0.0.0.1
+:: Version:     1.0.0
 :: Encode:      ANSI
 :: Date:        2022-01-17
 :: Description: 调用nmake.exe编译工程
@@ -35,11 +35,11 @@ set RES=
 :: 排除的文件
 set EXCLUDE=
 
-:: 目标文件路径
-set OUT=
-
 :: 临时文件路径
 set TMP=tmp
+
+:: 目标文件路径
+set OUT=
 
 :: 编译参数
 set CFLAGS=
@@ -91,6 +91,7 @@ if not exist "%INI%" (
 for /f "tokens=1,2 delims==" %%a in (%INI%) do (
     set %%a=%%b
 )
+
 ::-----------------------------------------------------
 :: 编译工具
 
@@ -335,6 +336,7 @@ if "%RES%" neq "" (
     set REC=REC
 )
 
+:: 输出目录
 if "%OUT%" neq "" (
     set MOV=MOV
 )
@@ -369,6 +371,6 @@ nmake /nologo /f "%TMP%\makefile.nmake"
 cd %CD%
 
 :: 错误暂停
-::if "%errorlevel%" neq "0" (
+if "%errorlevel%" neq "0" (
     pause
 )

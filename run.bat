@@ -1,35 +1,73 @@
 ::-----------------------------------------------------
-:: Copyright:   2022, XT Tech. Co., Ltd.
-:: File name:   run.bat
-:: Description: 调用nmake.bat编译工程
+:: Copyright:   XT Tech. Co., Ltd.
+:: File:        run.bat
 :: Author:      张海涛
-:: Version:     0.0.0.1
-:: Code:        ANSI
-:: Date:        2022-02-06
-:: History:     2022-02-06 创建此文件。
+:: Version:     1.0.0
+:: Encode:      ANSI
+:: Date:        2022-01-17
+:: Description: 运行程序
 ::-----------------------------------------------------
 
 :: 不显示命令字符串
-@echo off
+::@echo off
+
+:: 程序名称
+set NAME=example
 
 :: 程序类型:exe,dll,lib
 set EXT=exe
 
-:: 目标文件路径
-set OUT=.\
-
 :: 临时文件路径
-set TMP=.\tmp
+set TMP=tmp
+
+:: 目标文件路径
+set OUT=
 
 ::-----------------------------------------------------
 :: 读取配置文件
 
-set INI=%1\make.ini
+set DIR=%1
 
-if exist "%INI%" (
-    for /f "tokens=1,2 delims==" %%a in (%INI%) do (
-        set %%a=%%b
+if "%DIR%" == "" (
+    echo "don't set make.ini path"
+    pause
+    exit
+)
+
+::将\替换成空格
+set DIR=%DIR:\= %
+
+set INI=
+
+SET ROOT=
+
+set DELIMS=
+
+setLocal EnableDelayedExpansion
+
+::查找make.ini文件
+for %%i in (%DIR%) do (
+    set "INI=!INI!!DELIMS!%%i"
+    set "DELIMS=\"
+    if exist "!INI!\make.ini" (
+        set "ROOT=!INI!"
+        set "INI=!INI!\make.ini"
+        goto break
     )
+)
+
+set NOT=1
+
+:break
+
+if "%NOT%" == "1" (
+    echo "don't have %INI%"
+    pause
+    exit
+)
+
+for /f "tokens=1,2 delims==" %%a in (%INI%) do (
+    set %%a=%%b
 )
 
 ::-----------------------------------------------------
@@ -40,6 +78,10 @@ if "%EXT%" neq "exe" (
     exit
 )
 
-cd %1
+if exist "%ROOT%\%OUT%" (
+    cd %ROOT%\%OUT%
+) else (
+    cd %OUT%
+)
 
-start %OUT%\%NAME%.exe
+start %NAME%.exe
