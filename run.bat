@@ -62,7 +62,6 @@ set NOT=1
 
 if "%NOT%" == "1" (
     echo "don't have %INI%"
-    pause
     exit
 )
 

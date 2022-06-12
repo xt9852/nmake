@@ -368,8 +368,6 @@ set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 :: ±‡“Î≥Ã–Ú
 nmake /nologo /f "%TMP%\makefile.nmake"
 
-cd %CD%
-
 :: ¥ÌŒÛ‘›Õ£
 if "%errorlevel%" neq "0" (
     pause
