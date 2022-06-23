@@ -8,111 +8,6 @@
 :: Description: 调用nmake.exe编译工程
 ::-----------------------------------------------------
 
-:: 不显示命令字符串
-@echo off
-
-:: 程序名称
-set NAME=example
-
-:: 程序类型:exe,dll,lib
-set EXT=exe
-
-:: 程序架构:x86,x64
-set ARCH=x86
-
-:: 是否调试:y,n
-set DEBUG=n
-
-:: 字符集:mbcs,unicode,utf8
-set CHARSET=utf8
-
-:: 源文件路径
-set SRC=.
-
-:: 资源描述文件
-set RES=
-
-:: 排除的文件
-set EXCLUDE=
-
-:: 临时文件路径
-set TMP=tmp
-
-:: 目标文件路径
-set OUT=
-
-:: 编译参数
-set CFLAGS=
-
-:: 链接参数
-set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
-
-::-----------------------------------------------------
-:: 读取配置文件make.ini
-
-set DIR=%1
-
-if "%DIR%" == "" (
-    echo "don't set make.ini path"
-    pause
-    exit
-)
-
-::将\替换成空格
-set DIR=%DIR:\= %
-
-set INI=
-
-SET ROOT=
-
-set DELIMS=
-
-setLocal EnableDelayedExpansion
-
-::查找make.ini文件
-for %%i in (%DIR%) do (
-    set "INI=!INI!!DELIMS!%%i"
-    set "DELIMS=\"
-    if exist "!INI!\make.ini" (
-        set "ROOT=!INI!"
-        set "INI=!INI!\make.ini"
-        goto break
-    )
-)
-
-:break
-
-if not exist "%INI%" (
-    echo "don't have %INI%"
-    pause
-    exit
-)
-
-for /f "tokens=1,2 delims==" %%a in (%INI%) do (
-    set %%a=%%b
-)
-
-::-----------------------------------------------------
-:: 编译工具
-
-set TOOL_CC=cl.exe
-set TOOL_ML=ml.exe
-set TOOL_RC=rc.exe
-set TOOL_LIB=lib.exe
-set TOOL_LNK=link.exe
-set MSVC_PATH_ROOT=D:\4.backup\coding\VS2022
-set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.30.30705\bin\Hostx64\%ARCH%
-set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.30.30705\include
-set PATH_MSVC_INCLUDE_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\include
-set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.30.30705\lib\%ARCH%
-set PATH_MSVC_LIB_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\lib\%ARCH%
-set PATH_KITS_BIN=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\bin\%ARCH%
-set PATH_KITS_INCLUDE_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\um
-set PATH_KITS_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\ucrt
-set PATH_KITS_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\shared
-set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%ARCH%
-set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH%
-
 ::-----------------------------------------------------
 :: 编译MFC程序需要将下面的代码加入代码中
 :: #ifdef NMAKE
@@ -174,6 +69,113 @@ set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH
 ::  }
 :: #endif
 ::-----------------------------------------------------
+
+:: 不显示命令字符串
+@echo off
+
+:: 程序名称
+set NAME=example
+
+:: 程序类型:exe,dll,lib
+set EXT=exe
+
+:: 程序架构:x86,x64
+set ARCH=x86
+
+:: 是否调试:y,n
+set DEBUG=n
+
+:: 字符集:mbcs,unicode,utf8
+set CHARSET=utf8
+
+:: 源文件路径
+set SRC=.
+
+:: 资源描述文件
+set RES=
+
+:: 排除的文件
+set EXCLUDE=
+
+:: 临时文件路径
+set TMP=tmp
+
+:: 目标文件路径
+set OUT=
+
+:: 编译参数
+set CFLAGS=
+
+:: 链接参数
+set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
+
+::-----------------------------------------------------
+:: 读取配置文件make.ini
+
+set DIR=%1
+
+if "%DIR%" == "" (
+    echo "don't set make.ini path"
+    pause
+    exit
+)
+
+::将\替换成空格
+set DIR=%DIR:\= %
+
+set INI=
+
+set ROOT=
+
+set DELIMS=
+
+setLocal EnableDelayedExpansion
+
+::查找make.ini文件
+for %%i in (%DIR%) do (
+    set "INI=!INI!!DELIMS!%%i"
+    set "DELIMS=\"
+    if exist "!INI!\make.ini" (
+        set "ROOT=!INI!"
+        set "INI=!INI!\make.ini"
+        goto break
+    )
+)
+
+:break
+
+if not exist "%INI%" (
+    echo "don't have %INI%"
+    pause
+    exit
+)
+
+for /f "tokens=1,2 delims==" %%a in (%INI%) do (
+    set %%a=%%b
+)
+
+::-----------------------------------------------------
+:: 编译工具
+
+set TOOL_CC=cl.exe
+set TOOL_ML=ml.exe
+set TOOL_RC=rc.exe
+set TOOL_LIB=lib.exe
+set TOOL_LNK=link.exe
+set MSVC_PATH_ROOT=D:\4.backup\coding\VS2022
+set PATH_MSVC_BIN=%MSVC_PATH_ROOT%\MSVC\14.30.30705\bin\Hostx64\%ARCH%
+set PATH_MSVC_INCLUDE=%MSVC_PATH_ROOT%\MSVC\14.30.30705\include
+set PATH_MSVC_INCLUDE_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\include
+set PATH_MSVC_LIB=%MSVC_PATH_ROOT%\MSVC\14.30.30705\lib\%ARCH%
+set PATH_MSVC_LIB_MFC=%MSVC_PATH_ROOT%\MSVC\14.30.30705\atlmfc\lib\%ARCH%
+set PATH_KITS_BIN=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\bin\%ARCH%
+set PATH_KITS_INCLUDE_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\um
+set PATH_KITS_INCLUDE_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\ucrt
+set PATH_KITS_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\shared
+set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%ARCH%
+set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH%
+
+
 :: 编译参数
 :: /c                    只编译,不链接
 :: /Gd                   调用约定:_cdecl
@@ -369,6 +371,8 @@ set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 nmake /nologo /f "%TMP%\makefile.nmake"
 
 :: 错误暂停
-if "%errorlevel%" neq "0" (
+if "%errorlevel%" == "0" (
+    timeout /T 3
+) else (
     pause
 )
