@@ -7,8 +7,6 @@
 :: Date:        2022-01-17
 :: Description: 调用nmake.exe编译工程
 ::-----------------------------------------------------
-
-::-----------------------------------------------------
 :: 编译MFC程序需要将下面的代码加入代码中
 :: #ifdef NMAKE
 ::  // 来自于Microsoft Visual Studio\2022\VC\Tools\MSVC\14.30.30705\atlmfc\src\mfc\winmain.cpp
@@ -69,7 +67,49 @@
 ::  }
 :: #endif
 ::-----------------------------------------------------
-
+:: 编译参数
+:: /c                    只编译,不链接
+:: /Gd                   调用约定:_cdecl
+:: /W3                   警告等级3
+:: /WX                   将警告视为错误
+:: /FC                   使用完整路径
+:: /GS                   启用安全检查
+:: /sdl                  启用SDL检查
+:: /EHsc                 启用C++异常
+:: /Gm-                  停用最小重新生成
+:: /nologo               不显示版权信息
+:: /permissive-          符合模式
+:: /Zc:wchar_t           将wchar_t视为类型
+:: /Zc:inline            移除未引用代码和数据
+:: /Zc:forScope          for循环范围检查
+:: /fp:precise           浮点模型:精度
+:: /diagnostics:column   诊断格式:列
+:: /errorReport:prompt   错误报告:立即提示
+:: /Fo:"$(TMP)/"         输出路径
+:: /Fd:"$(TMP)/"         vc***.pdb路径
+:: /D "_WINDOWS"
+:: /utf-8                UTF8编译
+::----------debug--------
+:: /JMC                  支持仅我的代码调试
+:: /ZI                   启用“编辑并继续”调试信息
+:: /Od                   禁用优化
+:: /RTC1                 运行时检查
+::---------release-------
+:: /Zi                   启用调试信息
+:: /O2                   最大化速度
+:: /Oi                   启用内部函数
+:: /GL                   启用链接时代码生成
+:: /Gy                   分隔链接器函数
+::-----------------------------------------------------
+:: 连接参数
+:: /LIBPATH:        lib文件包在路径
+:: /MANIFEST        生成清单
+:: /NXCOMPAT        数据执行保护
+:: /TLBID:1         资源ID
+:: /INCREMENTAL:NO  增量连接
+:: /OPT:REF         引用
+:: /LTCG:incremental使用快速连接生成代码
+::-----------------------------------------------------
 :: 不显示命令字符串
 @echo off
 
@@ -101,57 +141,74 @@ set EXCLUDE=
 set TMP=tmp
 
 :: 目标文件路径
-set OUT=
+set OUT=.
 
 :: 编译参数
-set CFLAGS=
+set CF=
 
 :: 链接参数
-set LFLAGS=gdi32.lib User32.lib Advapi32.lib Shell32.lib
+set LF=gdi32.lib User32.lib Advapi32.lib Shell32.lib
 
 ::-----------------------------------------------------
 :: 读取配置文件make.ini
 
-set DIR=%1
-
-if "%DIR%" == "" (
-    echo "don't set make.ini path"
+:: 设有参数1
+if "%1" == "" (
+    echo "don't have param"
     pause
     exit
 )
 
-::将\替换成空格
+:: 保存参数1
+set DIR=%1
+
+:: 将\替换成空格,因为for不能用\分割字符
 set DIR=%DIR:\= %
 
-set INI=
-
-set ROOT=
-
-set DELIMS=
-
+:: 延时变量扩展
 setLocal EnableDelayedExpansion
 
-::查找make.ini文件
+:: 计算目录层数
 for %%i in (%DIR%) do (
-    set "INI=!INI!!DELIMS!%%i"
-    set "DELIMS=\"
-    if exist "!INI!\make.ini" (
-        set "ROOT=!INI!"
-        set "INI=!INI!\make.ini"
-        goto break
+    set /a NUM+=1
+)
+
+:: 倒序循环
+for /L %%i in (%NUM%, -1, 1) do (
+    set j=0
+    set INI=
+    set TOK=
+
+    :: 拼接路径
+    for %%d in (%DIR%) do (
+        set INI=!INI!!TOK!%%d
+        set TOK=\
+        set /a j+=1
+        if "!j!" == "%%i" (
+            :: for循环内不能有标签
+            rem 查找make.ini文件,使用::会报系统找不到指定驱动器
+            if exist "!INI!\make.ini" (
+                set ROOT=!INI!
+                set INI=!INI!\make.ini
+                echo !INI!
+                goto find_make_ini
+            )
+        )
     )
 )
 
-:break
+:: 没有找到make.ini
+echo "don't have make.ini"
+pause
+exit
 
-if not exist "%INI%" (
-    echo "don't have %INI%"
-    pause
-    exit
-)
+:find_make_ini
 
+:: 读取make.ini,以=分割字符,并设置变量
 for /f "tokens=1,2 delims==" %%a in (%INI%) do (
     set %%a=%%b
+    echo %%a
+    echo %%b
 )
 
 ::-----------------------------------------------------
@@ -175,116 +232,66 @@ set PATH_KITS_INCLUDE_SHARED=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Include\
 set PATH_KITS_LIB_UM=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\um\%ARCH%
 set PATH_KITS_LIB_UCRT=%MSVC_PATH_ROOT%\Windows Kits\10.0.22000.0\Lib\ucrt\%ARCH%
 
-
-:: 编译参数
-:: /c                    只编译,不链接
-:: /Gd                   调用约定:_cdecl
-:: /W3                   警告等级3
-:: /WX                   将警告视为错误
-:: /FC                   使用完整路径
-:: /GS                   启用安全检查
-:: /sdl                  启用SDL检查
-:: /EHsc                 启用C++异常
-:: /Gm-                  停用最小重新生成
-:: /nologo               不显示版权信息
-:: /permissive-          符合模式
-:: /Zc:wchar_t           将wchar_t视为类型
-:: /Zc:inline            移除未引用代码和数据
-:: /Zc:forScope          for循环范围检查
-:: /fp:precise           浮点模型:精度
-:: /diagnostics:column   诊断格式:列
-:: /errorReport:prompt   错误报告:立即提示
-:: /Fo:"$(TMP)/"         输出路径
-:: /Fd:"$(TMP)/"         vc***.pdb路径
-:: /D "_WINDOWS"
-:: /utf-8                UTF8编译
-::-----------------------debug-----
-:: /JMC                  支持仅我的代码调试
-:: /ZI                   启用“编辑并继续”调试信息
-:: /Od                   禁用优化
-:: /RTC1                 运行时检查
-::-----------------------release-----
-:: /Zi                   启用调试信息
-:: /O2                   最大化速度
-:: /Oi                   启用内部函数
-:: /GL                   启用链接时代码生成
-:: /Gy                   分隔链接器函数
+::-----------------------------------------------------
+:: 编译程序参数
 
 :: 包含路径
-set INCLUDE=/I"%PATH_MSVC_INCLUDE%" ^
-/I"%PATH_MSVC_INCLUDE_MFC%" ^
-/I"%PATH_KITS_INCLUDE_UM%" ^
-/I"%PATH_KITS_INCLUDE_UCRT%" ^
-/I"%PATH_KITS_INCLUDE_SHARED%"
+set INCLUDE=/I"%PATH_MSVC_INCLUDE%" /I"%PATH_MSVC_INCLUDE_MFC%" ^
+/I"%PATH_KITS_INCLUDE_UM%" /I"%PATH_KITS_INCLUDE_UCRT%" /I"%PATH_KITS_INCLUDE_SHARED%"
 
-:: 编译代码参数
-set CFLAGS=%INCLUDE% %CFLAGS% ^
-/nologo /c /Gd /FC /W3 /WX ^
-/GS- /sdl- /EHsc- /Gm- /permissive- ^
-/Zc:wchar_t /Zc:inline /Zc:forScope ^
-/fp:precise /diagnostics:column /errorReport:prompt ^
-/Fo:"$(ROOT)\$(TMP)/" /Fd:"$(ROOT)\$(TMP)/" /D"NMAKE"
+:: 编译参数
+set CF=%INCLUDE% /nologo /c /Gd /FC /W3 /WX /GS- /sdl- /EHsc- /Gm- /permissive- /Zc:wchar_t /Zc:inline /Zc:forScope ^
+/fp:precise /diagnostics:column /errorReport:prompt /Fo:"$(ROOT)\$(TMP)/" /Fd:"$(ROOT)\$(TMP)/" /D"NMAKE" %CF%
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
-    set CFLAGS=%CFLAGS% /D"_DEBUG" /JMC /ZI /Od /RTC1
+    set CF=%CF% /D"_DEBUG" /JMC /ZI /Od /RTC1
 ) else (
-    set CFLAGS=%CFLAGS% /D"NDEBUG" /Zi /O2 /Oi /GL /Gy
+    set CF=%CF% /D"NDEBUG" /Zi /O2 /Oi /GL /Gy
 )
 
 :: 程序架构类型:x64,x86
 if "%ARCH%" == "x64" (
-    set CFLAGS=%CFLAGS% /D"_WINDOWS" /D"_WIN64" /D"X64"
+    set CF=%CF% /D"_WINDOWS" /D"_WIN64" /D"X64"
 ) else (
-    set CFLAGS=%CFLAGS% /D"_WINDOWS" /D"_WIN32" /D"WIN32"
+    set CF=%CF% /D"_WINDOWS" /D"_WIN32" /D"WIN32"
 )
 
 :: 字符集类型:mbcs,unicode,utf8
 if "%CHARSET%" == "mbcs" (
-    set CFLAGS=%CFLAGS% /D"_MBCS"
+    set CF=%CF% /D"_MBCS"
 ) else if "%CHARSET%" == "unicode" (
-    set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE"
+    set CF=%CF% /D"_UNICODE" /D"UNICODE"
 ) else (
-    set CFLAGS=%CFLAGS% /D"_UNICODE" /D"UNICODE" /utf-8
+    set CF=%CF% /D"_UNICODE" /D"UNICODE" /utf-8
 )
 
-::-----------------------------------------------------
 :: 编译资源参数
-set RFLAGS=%INCLUDE% /nologo /fo"$(ROOT)\$(TMP)\$(NAME).res" "$(ROOT)\$(RES)"
+set RF=%INCLUDE% /nologo /fo"$(ROOT)\$(TMP)\$(NAME).res" "$(ROOT)\$(RES)"
 
 ::-----------------------------------------------------
-:: 连接参数说明
-:: /LIBPATH:        lib文件包在路径
-:: /MANIFEST        生成清单
-:: /NXCOMPAT        数据执行保护
-:: /TLBID:1         资源ID
-:: /INCREMENTAL:NO  增量连接
-:: /OPT:REF         引用
-:: /LTCG:incremental使用快速连接生成代码
+:: 连接程序参数
 
 :: 包含路径
-set LIBPATH=/LIBPATH:"%PATH_MSVC_LIB%" ^
-/LIBPATH:"%PATH_MSVC_LIB_MFC%" ^
-/LIBPATH:"%PATH_KITS_LIB_UM%" ^
-/LIBPATH:"%PATH_KITS_LIB_UCRT%"
+set LIBP=/LIBPATH:"%PATH_MSVC_LIB%" /LIBPATH:"%PATH_MSVC_LIB_MFC%" /LIBPATH:"%PATH_KITS_LIB_UM%" /LIBPATH:"%PATH_KITS_LIB_UCRT%"
 
 :: 连接参数
-set LFLAGS=%LFLAGS% %LIBPATH% /nologo /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1
+set LF=%LF% %LIBP% /nologo /MANIFEST /NXCOMPAT /ERRORREPORT:PROMPT /TLBID:1
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
-    set LFLAGS=%LFLAGS% /DEBUG /INCREMENTAL
+    set LF=%LF% /DEBUG /INCREMENTAL
 ) else (
-    set LFLAGS=%LFLAGS% /INCREMENTAL:NO /OPT:REF /LTCG:incremental
+    set LF=%LF% /INCREMENTAL:NO /OPT:REF /LTCG:incremental
 )
 
 :: 目标类型:exe,dll,lib
 if "%EXT%" == "exe" (
-    set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.exe
+    set LF=%LF% /OUT:%TMP%\%NAME%.exe
 ) else if "%EXT%" == "dll" (
-    set LFLAGS=%LFLAGS% /OUT:%TMP%\%NAME%.dll /DLL
+    set LF=%LF% /OUT:%TMP%\%NAME%.dll /DLL
 ) else if "%EXT%" == "lib" (
-    set LFLAGS=/OUT:%OUT%\%NAME%.lib
+    set LF=/OUT:%TMP%\%NAME%.lib
     set TOOL_LNK=%TOOL_LIB%
 ) else (
     echo EXT=%EXT% error
@@ -324,6 +331,7 @@ for %%I in (%SRC%) do (
     for /f %%J in ('dir /s/b *.c *.cpp') do (
         set "FILES_SRC=!FILES_SRC! %%J"
 
+        :: 排除的文件
         echo %EXCLUDE% | findstr %%~nJ > nul && (
             echo "exclude %%J"
         ) || (
@@ -348,20 +356,21 @@ echo all : %REC% OBJ BIN %MOV%^
 
 REC : %ROOT%\$(RES)^
 
-    $(TOOL_RC) %RFLAGS%^
+    $(TOOL_RC) %RF%^
 
 OBJ : $(FILES_SRC)^
 
-    $(TOOL_CC) $** $(CFLAGS)^
+    $(TOOL_CC) $** $(CF)^
 
 BIN : $(FILES_OBJ)^
 
-    $(TOOL_LNK) $** $(LFLAGS)^
+    $(TOOL_LNK) $** $(LF)^
 
 MOV :^
 
     move "%MOV_SRC%" "%MOV_DST%" >> "%ROOT%\%TMP%\makefile.nmake"
 
+:: 进入程序根目录
 cd %ROOT%
 
 :: 设置系统路径
