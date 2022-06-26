@@ -190,7 +190,6 @@ for /L %%i in (%NUM%, -1, 1) do (
             if exist "!INI!\make.ini" (
                 set ROOT=!INI!
                 set INI=!INI!\make.ini
-                echo !INI!
                 goto find_make_ini
             )
         )
