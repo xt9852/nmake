@@ -309,28 +309,32 @@ if not exist "%ROOT%\%TMP%" (
     del /q "%ROOT%\%TMP%\*"
 )
 
-:: 保存当前目录
-set CD=%~dp0
-
 :: 源代码文件
 set FILES_SRC=
 set FILES_OBJ=
 
 :: 多个源目录
 for %%I in (%SRC%) do (
-    if exist "%ROOT%\%%I" (
-        cd "%ROOT%\%%I"
+
+    if exist %ROOT%\%%I (
+        cd %ROOT%\%%I
     ) else (
-        cd "%%I"
+        cd %%I
     )
 
     :: 查找源文件
-    for /f %%J in ('dir /s/b *.c *.cpp') do (
+    for /r %%J in (*.cpp *.c) do (
+        set R=%%J
+
+        for %%K in (!ROOT!\) do (
+            set R=!R:%%K=!
+        )
+
         :: 排除的文件
         echo %EXCLUDE% | findstr %%~nJ > nul && (
             echo "exclude %%J"
         ) || (
-            set "FILES_SRC=!FILES_SRC! %%J"
+            set "FILES_SRC=!FILES_SRC! !R!"
             set "FILES_OBJ=!FILES_OBJ! %ROOT%\%TMP%\%%~nJ.obj"
         )
     )
