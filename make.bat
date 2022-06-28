@@ -326,12 +326,11 @@ for %%I in (%SRC%) do (
 
     :: 查找源文件
     for /f %%J in ('dir /s/b *.c *.cpp') do (
-        set "FILES_SRC=!FILES_SRC! %%J"
-
         :: 排除的文件
         echo %EXCLUDE% | findstr %%~nJ > nul && (
             echo "exclude %%J"
         ) || (
+            set "FILES_SRC=!FILES_SRC! %%J"
             set "FILES_OBJ=!FILES_OBJ! %ROOT%\%TMP%\%%~nJ.obj"
         )
     )
