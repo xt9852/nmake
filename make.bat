@@ -114,7 +114,7 @@
 @echo off
 
 :: 设置屏幕大小
-::mode con cols=100 lines=300
+:: mode con cols=100 lines=300
 
 :: 字体颜色
 color 0A
@@ -181,17 +181,17 @@ for %%i in (%DIR%) do (
 
 :: 倒序循环
 for /L %%i in (%NUM%, -1, 1) do (
-    set INI=
+    set P=
     set T=
     set j=0
     :: 拼接路径
     for %%d in (%DIR%) do (
-        set   INI=!INI!!T!%%d
+        set     P=!P!!T!%%d
         set     T=\
         set /a j+=1
         if "!j!" == "%%i" (
             :: 查找make.ini文件,for循环内不能有标签
-            if exist "!INI!\make.ini" (
+            if exist "!P!\make.ini" (
                 goto find_make_ini
             )
         )
@@ -206,13 +206,13 @@ exit
 :find_make_ini
 
 :: 设置根目录
-set ROOT=!INI!
+set ROOT=!P!
 
 :: 进入根目录
 cd %ROOT%
 
 :: 读取make.ini,以=分割字符,并设置变量
-for /f "tokens=1,2 delims==" %%a in (!INI!\make.ini) do (
+for /f "tokens=1,2 delims==" %%a in (!P!\make.ini) do (
     set %%a=%%b
 )
 
@@ -324,22 +324,34 @@ if "%RES%" neq "" (
 
 :: 编译文件,多个源目录
 for %%D in (%SRC%) do (
-    :: 查找源文件
-    for /r %%F in (%%D\*.cpp *.c) do (
-        set R=%%F
-        set R=!R:%ROOT%\=!
-        :: 文件名或第一个目录名
-        for /f "delims=\" %%E in ('echo !R!') do (
-            :: 排除目录
-            echo %EXC% | findstr %%E > nul && (
-                echo exclude path !R!
-            ) || (
-                :: 排除文件
-                echo %EXC% | findstr %%~nxF > nul && (
-                    echo exclude file %%~nxF
+    for /f %%F in ('dir /s/b %%D') do (
+        set E=%%~xF
+        set FIND=
+
+        :: 比较扩展名,*.c不准确
+        if "!E!" == ".c" (
+            set FIND=1
+        )
+        if "!E!" == ".cpp" (
+            set FIND=1
+        )
+        if "!FIND!" == "1" (
+            set R=%%F
+            set R=!R:%ROOT%\=!
+
+            :: 第一个目录名
+            for /f "delims=\" %%E in ('echo !R!') do (
+                :: 排除目录
+                echo %EXC% | findstr %%E > nul && (
+                    echo !R! exclude path
                 ) || (
-                    %TOOL_CC% !R! /I"!CD!" %CF%
-                    set "OBJ=!OBJ! %TP%\%%~nF.obj"
+                    :: 排除文件
+                    echo %EXC% | findstr %%~nxF > nul && (
+                        echo %%~nxF exclude file
+                    ) || (
+                        %TOOL_CC% !R! /I"!CD!" %CF%
+                        set "OBJ=!OBJ! %TP%\%%~nF.obj"
+                    )
                 )
             )
         )
