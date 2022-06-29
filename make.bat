@@ -141,10 +141,10 @@ set SRC=.
 set RES=
 
 :: 排除的文件
-set EXCLUDE=
+set EXC=
 
 :: 临时文件路径
-set TMP=tmp
+set TP=tmp
 
 :: 目标文件路径
 set OUT=.
@@ -246,7 +246,7 @@ set INCLUDE=/I"%PATH_MSVC_INCLUDE%" /I"%PATH_MSVC_INCLUDE_MFC%" ^
 
 :: 编译参数
 set CF=%INCLUDE% /nologo /c /Gd /FC /W3 /WX /GS- /sdl- /EHsc- /Gm- /permissive- /Zc:wchar_t /Zc:inline /Zc:forScope ^
-/fp:precise /diagnostics:column /errorReport:prompt /Fo:"%ROOT%\%TMP%/" /Fd:"%ROOT%\%TMP%/" %CF%
+/fp:precise /diagnostics:column /errorReport:prompt /Fo:"%ROOT%\%TP%/" /Fd:"%ROOT%\%TP%/" %CF%
 
 :: 构建类型:debug,release
 if "%DEBUG%" == "y" (
@@ -272,7 +272,7 @@ if "%CHARSET%" == "mbcs" (
 )
 
 :: 编译资源参数
-set RF=%INCLUDE% /nologo /fo"%ROOT%\%TMP%\%NAME%.res" "%ROOT%\%RES%"
+set RF=%INCLUDE% /nologo /fo"%ROOT%\%TP%\%NAME%.res" "%ROOT%\%RES%"
 
 ::-----------------------------------------------------
 :: 连接程序参数
@@ -292,11 +292,11 @@ if "%DEBUG%" == "y" (
 
 :: 目标类型:exe,dll,lib
 if "%EXT%" == "exe" (
-    set LF=%LF% /OUT:%NAME%.exe
+    set LF=%LF% /OUT:%TP%\%NAME%.exe
 ) else if "%EXT%" == "dll" (
-    set LF=%LF% /OUT:%NAME%.dll /DLL
+    set LF=%LF% /OUT:%TP%\%NAME%.dll /DLL
 ) else if "%EXT%" == "lib" (
-    set LF=/nologo /OUT:%NAME%.lib
+    set LF=/nologo /OUT:%TP%\%NAME%.lib
     set TOOL_LNK=%TOOL_LIB%
 ) else (
     echo EXT=%EXT% error
@@ -310,46 +310,48 @@ if "%EXT%" == "exe" (
 set PATH=%PATH%;%PATH_MSVC_BIN%;%PATH_KITS_BIN%
 
 :: 检查临目录
-if not exist "%TMP%" (
-    mkdir "%TMP%"
+if not exist "%TP%" (
+    mkdir "%TP%"
 ) else (
-    del /q "%TMP%\*"
+    del /q "%TP%\*"
 )
 
 :: 资源文件
 if "%RES%" neq "" (
     %TOOL_RC% %RF%
-    set OBJ=%OBJ% %TMP%\%NAME%.res
+    set OBJ=%OBJ% %TP%\%NAME%.res
 )
 
 :: 编译文件,多个源目录
 for %%D in (%SRC%) do (
-    :: 进入源目录
-    cd %ROOT%\%%D
-
-    for %%T in (%CD%) do (
-        :: 查找源文件
-        for /r %%F in (*.cpp *.c) do (
-            set R=%%F
-            echo %EXCLUDE% | findstr %%~nF > nul && (
-                echo %%~nF exclude
+    :: 查找源文件
+    for /r %%F in (%%D\*.cpp *.c) do (
+        set R=%%F
+        set R=!R:%ROOT%\=!
+        :: 文件名或第一个目录名
+        for /f "delims=\" %%E in ('echo !R!') do (
+            :: 排除目录
+            echo %EXC% | findstr %%E > nul && (
+                echo exclude path !R!
             ) || (
-                %TOOL_CC% !R:%%T\=! /I"!CD!" %CF%
-                set "OBJ=!OBJ! %%~nF.obj"
+                :: 排除文件
+                echo %EXC% | findstr %%~nxF > nul && (
+                    echo exclude file %%~nxF
+                ) || (
+                    %TOOL_CC% !R! /I"!CD!" %CF%
+                    set "OBJ=!OBJ! %TP%\%%~nF.obj"
+                )
             )
         )
     )
 )
-
-:: 进入根目录
-cd %ROOT%\%TMP%
 
 :: 连接文件
 %TOOL_LNK% %OBJ% %LF%
 
 :: 输出目录
 if "%OUT%" neq "" (
-    move "%NAME%.%EXT%" "%ROOT%\%OUT%"
+    move "%TP%\%NAME%.%EXT%" "%OUT%"
 )
 
 :: 暂停
